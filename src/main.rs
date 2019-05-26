@@ -76,18 +76,16 @@ impl Statement {
     fn execute_statement(&self, table: &mut row::Table) -> bool {
         match self.statement_type {
             StatementType::Insert => {
-                println!("this is where we insert");
                 return match &self.row_to_insert {
                     None => false,
                     Some(row) => table.insert_row(row),
                 };
             }
             StatementType::Select => {
-                println!("this is where we select");
+                table.print_rows();
+                return true;
             }
         };
-
-        true
     }
 }
 

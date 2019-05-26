@@ -11,7 +11,7 @@ const EMAIL_OFFSET: usize = USERNAME_OFFSET + USERNAME_SIZE;
 
 const ROW_SIZE: usize = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Row {
     id: u32,
     username: String,
@@ -34,8 +34,11 @@ impl Row {
     }
 
     pub fn deserialize(raw_data: Vec<u8>) -> Row {
-        let decoded: Option<Row> = bincode::deserialize(&raw_data[..]).unwrap();
-        decoded.unwrap()
+        println!("{:?}",raw_data.to_vec());
+        let decoded: Result<Option<Row>, bincode::Error> = bincode::deserialize(&raw_data[..]);
+        // let decoded: Option<Row> = bincode::deserialize(&raw_data[..]).unwrap();
+        dbg!(&decoded);
+        decoded.unwrap().unwrap()
     }
 }
 
@@ -66,11 +69,11 @@ impl Table {
             return false
         }
 
-        let (page_index, offset) = self.row_slot(self.num_rows + 1);
+        let (page_index, offset) = self.row_slot(self.num_rows);
         let mut page = self.pages[page_index];
 
         let bytes = row.serialize();
-        println!("Bytes are: {:?}", bytes);
+        dbg!(bytes.len());
 
         let mut i = 0;
         for byte in bytes.iter() {
@@ -78,8 +81,28 @@ impl Table {
             i += 1
         }
 
+        // Since we modified a copy of the page, we need to slot it in
+        self.pages[page_index] = page;
         self.num_rows += 1;
         return true
+    }
+
+    pub fn print_rows(&self) {
+        dbg!(self.num_rows);
+        for row_num in 0..self.num_rows {
+            dbg!(row_num);
+            let (page_index, offset) = self.row_slot(row_num);
+            dbg!(page_index);
+            dbg!(offset);
+
+            let page = self.pages[page_index];
+
+            let bytes = page.data[offset..offset + ROW_SIZE].to_vec();
+            dbg!(bytes.len());
+
+            let row = Row::deserialize(bytes);
+            println!("{:?}", row);
+        }
     }
 
 
