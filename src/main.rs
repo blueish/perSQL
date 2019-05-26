@@ -9,6 +9,7 @@ use std::io::Write;
 mod row;
 
 fn main() {
+    let table: &mut row::Table = &mut row::Table::new();
     loop {
         print!("persql> ");
         io::stdout().flush().unwrap();
@@ -32,15 +33,17 @@ fn main() {
         let statement = prepare_statement(&command);
 
         match statement {
-            Err(PrepareError::InsertError) => println!("Insertion error, make sure your name is < 32 chars and email < 255"),
+            Err(PrepareError::InsertError) => {
+                println!("Insertion error, make sure your name is < 32 chars and email < 255")
+            }
             Err(PrepareError::SyntaxErr) => println!("Syntax error at start of {}", command),
             Err(PrepareError::UnrecognizedStatement) => {
                 println!("Unrecognized statement at start of {}", command)
-            },
+            }
             Ok(statement) => {
-                statement.execute_statement(&command);
+                statement.execute_statement(table);
                 println!("Executed");
-            },
+            }
         }
     }
 }
@@ -63,17 +66,21 @@ struct Statement {
     row_to_insert: Option<row::Row>, // only used by insert
 }
 
-enum PrepareError{
+enum PrepareError {
     SyntaxErr,
     UnrecognizedStatement,
     InsertError,
 }
 
 impl Statement {
-    fn execute_statement(&self, command: &str) -> bool {
+    fn execute_statement(&self, table: &mut row::Table) -> bool {
         match self.statement_type {
             StatementType::Insert => {
                 println!("this is where we insert");
+                return match &self.row_to_insert {
+                    None => false,
+                    Some(row) => table.insert_row(row),
+                };
             }
             StatementType::Select => {
                 println!("this is where we select");
@@ -99,11 +106,7 @@ fn prepare_statement<'a>(command: &'a str) -> Result<Statement, PrepareError> {
             return Err(PrepareError::InsertError);
         }
 
-        let row = row::Row::new(
-            v[0].parse().expect("Invalid id"),
-            username,
-            email,
-        );
+        let row = row::Row::new(v[0].parse().expect("Invalid id"), username, email);
 
         let statement = Statement {
             statement_type: StatementType::Insert,

@@ -11,7 +11,6 @@ const EMAIL_OFFSET: usize = USERNAME_OFFSET + USERNAME_SIZE;
 
 const ROW_SIZE: usize = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
 
-
 #[derive(Serialize, Deserialize)]
 pub struct Row {
     id: u32,
@@ -48,28 +47,56 @@ const ROWS_PER_PAGE: usize = PAGE_SIZE / ROW_SIZE;
 const TABLE_MAX_ROWS: usize = ROWS_PER_PAGE * TABLE_MAX_PAGES;
 
 pub struct Table {
-    num_rows: u32,
-    pages: [Page;TABLE_MAX_PAGES]
+    num_rows: usize,
+    pages: [Page; TABLE_MAX_PAGES],
 }
 
 impl Table {
-    pub fn row_slot(&self, row_num: usize) -> (&Page, usize) {
+    pub fn new() -> Table {
+        Table {
+            num_rows: 0,
+            pages: [Page {
+                data: [0; PAGE_SIZE],
+            }; TABLE_MAX_PAGES],
+        }
+    }
+
+    pub fn insert_row(&mut self, row: &Row) -> bool {
+        if self.num_rows >= TABLE_MAX_ROWS {
+            return false
+        }
+
+        let (page_index, offset) = self.row_slot(self.num_rows + 1);
+        let mut page = self.pages[page_index];
+
+        let bytes = row.serialize();
+        println!("Bytes are: {:?}", bytes);
+
+        let mut i = 0;
+        for byte in bytes.iter() {
+            page.data[offset + i] = *byte;
+            i += 1
+        }
+
+        self.num_rows += 1;
+        return true
+    }
+
+
+    fn row_slot(&self, row_num: usize) -> (usize, usize) {
         let page_num: usize = (row_num as usize) / ROWS_PER_PAGE;
-        let page: &Page = &self.pages[page_num];
+        // let page: &Page = &self.pages[page_num];
 
         // TODO null check?
 
         let row_offset = row_num % ROWS_PER_PAGE;
         let byte_offset = row_offset * ROW_SIZE;
 
-        return (page, byte_offset);
-        
-
+        return (page_num, byte_offset);
     }
 }
 
+#[derive(Copy, Clone)]
 struct Page {
-    data: [u8; PAGE_SIZE]
+    data: [u8; PAGE_SIZE],
 }
-
-
