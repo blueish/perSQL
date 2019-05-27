@@ -1,16 +1,19 @@
-use crate::table;
 use crate::row;
+use crate::table;
 
+#[derive(Debug, PartialEq, Eq)]
 pub enum StatementType {
     Insert,
     Select,
 }
 
+#[derive(Debug)]
 pub struct Statement {
     statement_type: StatementType,
     row_to_insert: Option<row::Row>, // only used by insert
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub enum PrepareError {
     SyntaxErr,
     UnrecognizedStatement,
@@ -68,4 +71,39 @@ pub fn prepare_statement<'a>(command: &'a str) -> Result<Statement, PrepareError
     }
 
     return Err(PrepareError::UnrecognizedStatement);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn simple_insert() {
+        let res = prepare_statement("insert 1 asdf jkl;");
+
+        assert!(res.is_ok());
+    }
+
+    #[test]
+    fn insert_too_short() {
+        let res = prepare_statement("insert");
+
+        assert!(res.is_err());
+        assert_eq!(res.unwrap_err(), PrepareError::SyntaxErr);
+    }
+
+    #[test]
+    fn simple_select() {
+        let res = prepare_statement("select");
+
+        assert!(res.is_ok());
+    }
+
+    #[test]
+    fn unrecognized_statement() {
+        let res = prepare_statement("asdf");
+
+        assert!(res.is_err());
+        assert_eq!(res.unwrap_err(), PrepareError::UnrecognizedStatement);
+    }
 }

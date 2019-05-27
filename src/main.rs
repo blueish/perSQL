@@ -7,8 +7,8 @@ use std::io;
 use std::io::Write;
 
 mod row;
-mod table;
 mod statement;
+mod table;
 mod util;
 
 fn main() {
@@ -39,7 +39,9 @@ fn main() {
             Err(statement::PrepareError::InsertError) => {
                 println!("Insertion error, make sure your name is < 32 chars and email < 255")
             }
-            Err(statement::PrepareError::SyntaxErr) => println!("Syntax error at start of {}", command),
+            Err(statement::PrepareError::SyntaxErr) => {
+                println!("Syntax error at start of {}", command)
+            }
             Err(statement::PrepareError::UnrecognizedStatement) => {
                 println!("Unrecognized statement at start of {}", command)
             }

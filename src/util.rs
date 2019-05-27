@@ -6,7 +6,6 @@ pub fn do_meta_command(command: &str) -> bool {
     return false;
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -15,6 +14,5 @@ mod tests {
     fn do_meta_nothing() {
         assert_eq!(do_meta_command("nothing"), false);
     }
-
 
 }

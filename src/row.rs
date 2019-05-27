@@ -1,7 +1,7 @@
 pub const COLUMN_USERNAME_SIZE: usize = 32;
 pub const COLUMN_EMAIL_SIZE: usize = 255;
 
-const ID_SIZE: usize = 4;
+const ID_SIZE: usize = 1;
 const USERNAME_SIZE: usize = 32;
 const EMAIL_SIZE: usize = 255;
 
@@ -9,34 +9,52 @@ const EMAIL_SIZE: usize = 255;
 // const USERNAME_OFFSET: usize = ID_OFFSET + ID_SIZE;
 // const EMAIL_OFFSET: usize = USERNAME_OFFSET + USERNAME_SIZE;
 
-pub const ROW_SIZE: usize = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
+// pub const ROW_SIZE: usize = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
+pub const ROW_SIZE: usize = 304;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Row {
-    id: u32,
-    username: String,
-    email: String,
+    id: u8,
+    username: Vec<char>,
+    email: Vec<char>,
 }
 
 impl Row {
-    pub fn new(id: u32, username: String, email: String) -> Row {
+    pub fn new(id: u8, username: String, email: String) -> Row {
+        let mut username_with_padding =  vec![0 as char; USERNAME_SIZE];
+        let mut i = 0;
+        for c in username.chars() {
+            username_with_padding[i] = c;
+            i += 1;
+        }
+        println!("{:?}", username_with_padding);
+
+        let mut email_with_padding =  vec![0 as char; EMAIL_SIZE];
+        i = 0;
+        for c in email.chars() {
+            email_with_padding[i] = c;
+            i += 1;
+        }
+
         Row {
-            id,
-            username,
-            email,
+            id: id,
+            username: username_with_padding,
+            email: email_with_padding,
         }
     }
 
     pub fn serialize(&self) -> Vec<u8> {
+        // Here we'll pad the extra chars to make rows identical
+
         let encoded = bincode::serialize(self).unwrap();
+        dbg!(encoded.len());
 
         encoded
     }
 
     pub fn deserialize(raw_data: Vec<u8>) -> Row {
-        println!("{:?}", raw_data.to_vec());
+        dbg!(raw_data.len());
         let decoded: Result<Option<Row>, bincode::Error> = bincode::deserialize(&raw_data[..]);
-        // let decoded: Option<Row> = bincode::deserialize(&raw_data[..]).unwrap();
         dbg!(&decoded);
         decoded.unwrap().unwrap()
     }
