@@ -12,7 +12,7 @@ mod table;
 mod util;
 
 fn main() {
-    let table: &mut table::Table = &mut table::Table::new();
+    let mut table: &mut table::Table = &mut table::Table::new();
     loop {
         print!("persql> ");
         io::stdout().flush().unwrap();
@@ -35,20 +35,30 @@ fn main() {
 
         let statement = statement::prepare_statement(&command);
 
-        match statement {
-            Err(statement::PrepareError::InsertError) => {
-                println!("Insertion error, make sure your name is < 32 chars and email < 255")
+        if statement.is_err() {
+            match statement {
+                Err(statement::PrepareError::InsertError) => {
+                    println!("Insertion error, make sure your name is < 32 chars and email < 255")
+                }
+                Err(statement::PrepareError::SyntaxErr) => {
+                    println!("Syntax error at start of {}", command)
+                }
+                Err(statement::PrepareError::UnrecognizedStatement) => {
+                    println!("Unrecognized statement at start of {}", command)
+                }
+                _ => unreachable!()
             }
-            Err(statement::PrepareError::SyntaxErr) => {
-                println!("Syntax error at start of {}", command)
-            }
-            Err(statement::PrepareError::UnrecognizedStatement) => {
-                println!("Unrecognized statement at start of {}", command)
-            }
-            Ok(statement) => {
-                statement.execute_statement(table);
-                println!("Executed");
-            }
+            continue;
         }
+
+        let statement = statement.unwrap();
+
+        let table_res = table.execute_statement(&statement);
+
+        if table_res.is_err() {
+            continue;
+        }
+        table =  table_res.unwrap();
+        println!("Executed");
     }
 }

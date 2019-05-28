@@ -9,37 +9,21 @@ const EMAIL_SIZE: usize = 255;
 // const USERNAME_OFFSET: usize = ID_OFFSET + ID_SIZE;
 // const EMAIL_OFFSET: usize = USERNAME_OFFSET + USERNAME_SIZE;
 
-// pub const ROW_SIZE: usize = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
-pub const ROW_SIZE: usize = 304;
+pub const ROW_SIZE: usize = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Row {
     id: u8,
-    username: Vec<char>,
-    email: Vec<char>,
+    username: String,
+    email: String,
 }
 
 impl Row {
     pub fn new(id: u8, username: String, email: String) -> Row {
-        let mut username_with_padding =  vec![0 as char; USERNAME_SIZE];
-        let mut i = 0;
-        for c in username.chars() {
-            username_with_padding[i] = c;
-            i += 1;
-        }
-        println!("{:?}", username_with_padding);
-
-        let mut email_with_padding =  vec![0 as char; EMAIL_SIZE];
-        i = 0;
-        for c in email.chars() {
-            email_with_padding[i] = c;
-            i += 1;
-        }
-
         Row {
             id: id,
-            username: username_with_padding,
-            email: email_with_padding,
+            username: username,
+            email: email,
         }
     }
 
