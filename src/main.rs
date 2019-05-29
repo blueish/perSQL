@@ -1,8 +1,3 @@
-extern crate bincode;
-#[macro_use]
-extern crate serde_derive;
-extern crate serde;
-
 use std::io;
 use std::io::Write;
 
@@ -12,7 +7,7 @@ mod table;
 mod util;
 
 fn main() {
-    let mut table: &mut table::Table = &mut table::Table::new();
+    let table: &mut table::Table = &mut table::Table::new();
     loop {
         print!("persql> ");
         io::stdout().flush().unwrap();
@@ -46,7 +41,7 @@ fn main() {
                 Err(statement::PrepareError::UnrecognizedStatement) => {
                     println!("Unrecognized statement at start of {}", command)
                 }
-                _ => unreachable!()
+                _ => unreachable!(),
             }
             continue;
         }
@@ -55,7 +50,7 @@ fn main() {
 
         match table.execute_statement(&statement) {
             Err(e) => println!("{:?}", e),
-            Ok(s) => {},
+            Ok(_) => {}
         }
 
         println!("Executed");

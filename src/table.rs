@@ -12,16 +12,13 @@ struct Page {
 
 impl Page {
     fn new(v: Vec<row::Row>) -> Page {
-        Page {
-            data: v
-        }
+        Page { data: v }
     }
 }
 
 #[derive(Debug)]
 pub enum TableError {
     TableFull,
-
 }
 
 pub struct Table {
@@ -43,7 +40,10 @@ impl Table {
         }
     }
 
-    pub fn execute_statement<'c>(&mut self, statement: &'c statement::Statement) -> Result<& mut Table, TableError> {
+    pub fn execute_statement<'c>(
+        &mut self,
+        statement: &'c statement::Statement,
+    ) -> Result<&mut Table, TableError> {
         match statement.statement_type {
             statement::StatementType::Insert => {
                 return match &statement.row_to_insert {
@@ -51,7 +51,7 @@ impl Table {
                     Some(row) => {
                         let row = row.to_owned();
                         return self.insert_row(row);
-                    },
+                    }
                 };
             }
             statement::StatementType::Select => {
@@ -84,26 +84,6 @@ impl Table {
             }
         }
     }
-
-    fn row_slot(&self, row_num: usize) -> (usize, usize) {
-        let page_num: usize = (row_num as usize) / ROWS_PER_PAGE;
-        // let page: &Page = &self.pages[page_num];
-
-        // TODO null check?
-
-        let row_offset = row_num % ROWS_PER_PAGE;
-        let byte_offset = row_offset * row::ROW_SIZE;
-
-        return (page_num, byte_offset);
-    }
-
-    fn page_row_idx(row_num: usize) -> (usize, usize) {
-        let page_num: usize = (row_num as usize) / ROWS_PER_PAGE;
-
-        let row_idx = row_num % ROWS_PER_PAGE;
-
-        return (page_num, row_idx - 1);
-    }
 }
 
 #[cfg(test)]
@@ -116,7 +96,7 @@ mod tests {
         let mut table = Table::new();
         assert!(table.num_rows == 0);
 
-        table.insert_row(row);
+        assert!(table.insert_row(row).is_ok());
         assert!(table.num_rows == 1);
     }
 }
