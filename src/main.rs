@@ -53,12 +53,11 @@ fn main() {
 
         let statement = statement.unwrap().clone();
 
-        let table_res = table.execute_statement(&statement);
-
-        if table_res.is_err() {
-            continue;
+        match table.execute_statement(&statement) {
+            Err(e) => println!("{:?}", e),
+            Ok(s) => {},
         }
-        table =  table_res.unwrap();
+
         println!("Executed");
     }
 }

@@ -116,7 +116,7 @@ mod tests {
         let mut table = Table::new();
         assert!(table.num_rows == 0);
 
-        table.insert_row(&row);
+        table.insert_row(row);
         assert!(table.num_rows == 1);
     }
 }
