@@ -1,16 +1,15 @@
 use crate::row;
-use crate::table;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum StatementType {
     Insert,
     Select,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Statement {
-    statement_type: StatementType,
-    row_to_insert: Option<row::Row>, // only used by insert
+    pub statement_type: StatementType,
+    pub row_to_insert: Option<row::Row>, // only used by insert
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -18,23 +17,6 @@ pub enum PrepareError {
     SyntaxErr,
     UnrecognizedStatement,
     InsertError,
-}
-
-impl Statement {
-    pub fn execute_statement(&self, table: &mut table::Table) -> bool {
-        match self.statement_type {
-            StatementType::Insert => {
-                return match &self.row_to_insert {
-                    None => false,
-                    Some(row) => table.insert_row(row),
-                };
-            }
-            StatementType::Select => {
-                table.print_rows();
-                return true;
-            }
-        };
-    }
 }
 
 pub fn prepare_statement<'a>(command: &'a str) -> Result<Statement, PrepareError> {

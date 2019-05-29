@@ -1,8 +1,3 @@
-extern crate bincode;
-#[macro_use]
-extern crate serde_derive;
-extern crate serde;
-
 use std::io;
 use std::io::Write;
 
@@ -35,20 +30,29 @@ fn main() {
 
         let statement = statement::prepare_statement(&command);
 
-        match statement {
-            Err(statement::PrepareError::InsertError) => {
-                println!("Insertion error, make sure your name is < 32 chars and email < 255")
+        if statement.is_err() {
+            match statement {
+                Err(statement::PrepareError::InsertError) => {
+                    println!("Insertion error, make sure your name is < 32 chars and email < 255")
+                }
+                Err(statement::PrepareError::SyntaxErr) => {
+                    println!("Syntax error at start of {}", command)
+                }
+                Err(statement::PrepareError::UnrecognizedStatement) => {
+                    println!("Unrecognized statement at start of {}", command)
+                }
+                _ => unreachable!(),
             }
-            Err(statement::PrepareError::SyntaxErr) => {
-                println!("Syntax error at start of {}", command)
-            }
-            Err(statement::PrepareError::UnrecognizedStatement) => {
-                println!("Unrecognized statement at start of {}", command)
-            }
-            Ok(statement) => {
-                statement.execute_statement(table);
-                println!("Executed");
-            }
+            continue;
         }
+
+        let statement = statement.unwrap().clone();
+
+        match table.execute_statement(&statement) {
+            Err(e) => println!("{:?}", e),
+            Ok(_) => {}
+        }
+
+        println!("Executed");
     }
 }
