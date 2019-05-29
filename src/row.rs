@@ -9,13 +9,13 @@ pub const ROW_SIZE: usize = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
 
 #[derive(Debug, Clone)]
 pub struct Row {
-    id: u8,
+    id: u32,
     username: String,
     email: String,
 }
 
 impl Row {
-    pub fn new(id: u8, username: String, email: String) -> Row {
+    pub fn new(id: u32, username: String, email: String) -> Row {
         Row {
             id: id,
             username: username,

@@ -4,7 +4,7 @@ use crate::statement;
 const PAGE_SIZE: usize = 4096;
 const TABLE_MAX_PAGES: usize = 100;
 const ROWS_PER_PAGE: usize = PAGE_SIZE / row::ROW_SIZE;
-const TABLE_MAX_ROWS: usize = ROWS_PER_PAGE * TABLE_MAX_PAGES;
+pub const TABLE_MAX_ROWS: usize = ROWS_PER_PAGE * TABLE_MAX_PAGES;
 
 struct Page {
     data: Vec<row::Row>,
@@ -62,7 +62,7 @@ impl Table {
     }
 
     fn insert_row(&mut self, row: row::Row) -> Result<&mut Table, TableError> {
-        if self.num_rows >= TABLE_MAX_ROWS {
+        if self.num_rows >= TABLE_MAX_ROWS - 1 {
             return Err(TableError::TableFull);
         }
 
