@@ -49,7 +49,7 @@ fn main() {
         let statement = statement.unwrap().clone();
 
         match table.execute_statement(&statement) {
-            Err(e) => println!("{:?}", e),
+            Err(table::TableError::TableFull) => println!("Table is full."),
             Ok(_) => {}
         }
 
