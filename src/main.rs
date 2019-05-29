@@ -51,7 +51,7 @@ fn main() {
             continue;
         }
 
-        let statement = statement.unwrap();
+        let statement = statement.unwrap().clone();
 
         let table_res = table.execute_statement(&statement);
 

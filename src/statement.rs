@@ -1,12 +1,12 @@
 use crate::row;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum StatementType {
     Insert,
     Select,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Statement {
     pub statement_type: StatementType,
     pub row_to_insert: Option<row::Row>, // only used by insert

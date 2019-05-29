@@ -6,12 +6,12 @@ const TABLE_MAX_PAGES: usize = 100;
 const ROWS_PER_PAGE: usize = PAGE_SIZE / row::ROW_SIZE;
 const TABLE_MAX_ROWS: usize = ROWS_PER_PAGE * TABLE_MAX_PAGES;
 
-struct Page<'a> {
-    data: Vec<&'a row::Row>,
+struct Page {
+    data: Vec<row::Row>,
 }
 
-impl<'a> Page<'a> {
-    fn new(v: Vec<&'a row::Row>) -> Page<'a> {
+impl Page {
+    fn new(v: Vec<row::Row>) -> Page {
         Page {
             data: v
         }
@@ -24,13 +24,13 @@ pub enum TableError {
 
 }
 
-pub struct Table<'a> {
+pub struct Table {
     num_rows: usize,
-    pages: Vec<Page<'a>>,
+    pages: Vec<Page>,
 }
 
-impl<'a> Table<'a> {
-    pub fn new() -> Table<'a> {
+impl Table {
+    pub fn new() -> Table {
         let mut pages = vec![];
         for _ in 0..TABLE_MAX_PAGES {
             let v = vec![];
@@ -43,14 +43,13 @@ impl<'a> Table<'a> {
         }
     }
 
-    // pub fn execute_statement<'c: 'a>(&'a mut self, statement: &'c statement::Statement) -> Result<&'a mut Table, TableError> {
-    pub fn execute_statement<'c: 'a>(&'a mut self, statement: &'c statement::Statement) -> Result<&'c mut Table, TableError> {
+    pub fn execute_statement<'c>(&mut self, statement: &'c statement::Statement) -> Result<& mut Table, TableError> {
         match statement.statement_type {
             statement::StatementType::Insert => {
                 return match &statement.row_to_insert {
                     None => Ok(self),
                     Some(row) => {
-                        let row = (&row).to_owned();
+                        let row = row.to_owned();
                         return self.insert_row(row);
                     },
                 };
@@ -62,7 +61,7 @@ impl<'a> Table<'a> {
         };
     }
 
-    fn insert_row(&'a mut self, row: &'a row::Row) -> Result<&'a mut Table<'a>, TableError> {
+    fn insert_row(&mut self, row: row::Row) -> Result<&mut Table, TableError> {
         if self.num_rows >= TABLE_MAX_ROWS {
             return Err(TableError::TableFull);
         }

@@ -11,7 +11,7 @@ const EMAIL_SIZE: usize = 255;
 
 pub const ROW_SIZE: usize = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Row {
     id: u8,
     username: String,
