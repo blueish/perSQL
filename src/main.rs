@@ -46,7 +46,7 @@ fn main() {
             continue;
         }
 
-        let statement = statement.unwrap().clone();
+        let statement = statement.unwrap();
 
         match table.execute_statement(&statement) {
             Err(table::TableError::TableFull) => println!("Table is full."),

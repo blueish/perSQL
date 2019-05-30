@@ -7,18 +7,7 @@ const ROWS_PER_PAGE: usize = PAGE_SIZE / row::ROW_SIZE;
 pub const TABLE_MAX_ROWS: usize = ROWS_PER_PAGE * TABLE_MAX_PAGES;
 
 struct Page {
-    data: Vec<row::Row>,
-}
-
-impl Page {
-    fn new(v: Vec<row::Row>) -> Page {
-        Page { data: v }
-    }
-}
-
-#[derive(Debug)]
-pub enum TableError {
-    TableFull,
+    data: [u8; PAGE_SIZE],
 }
 
 pub struct Table {
@@ -26,17 +15,16 @@ pub struct Table {
     pages: Vec<Page>,
 }
 
+#[derive(Debug)]
+pub enum TableError {
+    TableFull,
+}
+
 impl Table {
     pub fn new() -> Table {
-        let mut pages = vec![];
-        for _ in 0..TABLE_MAX_PAGES {
-            let v = vec![];
-            pages.push(Page::new(v));
-        }
-
         Table {
             num_rows: 0,
-            pages: pages,
+            pages: vec![],
         }
     }
 
@@ -66,23 +54,61 @@ impl Table {
             return Err(TableError::TableFull);
         }
 
-        let row_num = self.num_rows + 1;
+        let row_num = self.num_rows;
+        let (page_idx, offset) = Table::row_slot(row_num);
 
-        let page_num: usize = (row_num as usize) / ROWS_PER_PAGE;
-        let page: &mut Page = &mut self.pages[page_num];
+        while page_idx >= self.pages.len() {
+            self.pages.push(Page {
+                data: [0; PAGE_SIZE]
+            })
+        }
+        let page = &mut self.pages[page_idx];
 
-        page.data.push(row);
+        let bytes = row.serialize_row();
+
+        let mut i = 0;
+        for byte in bytes.iter() {
+            page.data[offset + i] = *byte;
+            i += 1
+        }
 
         self.num_rows += 1;
         return Ok(self);
     }
 
     pub fn print_rows(&self) {
-        for page_num in 0..TABLE_MAX_PAGES {
-            for row in self.pages[page_num].data.iter() {
-                println!("{:?}", row);
-            }
+        for row_num in 0..self.num_rows {
+            let (page_index, offset) = Table::row_slot(row_num);
+
+            let page = &self.pages[page_index];
+
+            let bytes = page.data[offset..offset + row::ROW_SIZE].to_vec();
+
+            let row = row::Row::deserialize_row(bytes);
+            println!("{:?}", row);
         }
+    }
+
+    /// returns the <page_idx, offset_start> for a given row
+    /// # Example
+    ///
+    ///
+    /// ```
+    /// let row_number = 1;
+    /// assert_eq!(row_slot(row_number), (0, 1))
+    ///
+    /// let row_number = ROWS_PER_PAGE;
+    /// assert_eq!(row_slot(row_number), (1, 0))
+    /// ```
+    fn row_slot(row_num: usize) -> (usize, usize) {
+        let page_num: usize = (row_num as usize) / ROWS_PER_PAGE;
+
+        // TODO null check?
+
+        let row_offset = row_num % ROWS_PER_PAGE;
+        let byte_offset = row_offset * row::ROW_SIZE;
+
+        return (page_num, byte_offset);
     }
 }
 

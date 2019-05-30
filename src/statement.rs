@@ -6,7 +6,7 @@ pub enum StatementType {
     Select,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Statement {
     pub statement_type: StatementType,
     pub row_to_insert: Option<row::Row>, // only used by insert
