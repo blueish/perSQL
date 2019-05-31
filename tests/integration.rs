@@ -1,8 +1,7 @@
 extern crate rexpect;
 
-use rexpect::spawn;
 use rexpect::errors::*;
-
+use rexpect::spawn;
 
 #[cfg(test)]
 mod integration {

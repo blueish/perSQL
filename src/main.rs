@@ -1,3 +1,4 @@
+use std::env;
 use std::io;
 use std::io::Write;
 
@@ -5,9 +6,15 @@ mod row;
 mod statement;
 mod table;
 mod util;
+mod pager;
 
 fn main() {
-    let table: &mut table::Table = &mut table::Table::new();
+    let args: Vec<String> = env::args().collect();
+    if args.len() < 2 {
+        panic!("Please give a filename for the db");
+    }
+
+    let table: &mut table::Table = &mut table::Table::db_open(args[1].to_owned());
     loop {
         print!("persql> ");
         io::stdout().flush().unwrap();
