@@ -1,5 +1,5 @@
 use std::fs::{File, OpenOptions};
-use std::io::{self, Read, Seek, SeekFrom};
+use std::io::{self, Read, Seek, Write};
 
 use crate::row;
 use crate::table;
@@ -32,6 +32,22 @@ impl Pager {
         }
     }
 
+    pub fn close(&mut self) {
+        let mut i = 0;
+        for page in self.pages.iter() {
+            self.file_descriptor
+                .seek(io::SeekFrom::Start(i))
+                .expect("Unable to seek to position");
+
+            self.file_descriptor.write(&page.data);
+
+            i += table::PAGE_SIZE as u64;
+        }
+
+        self.file_descriptor.sync_data()
+            .expect("unable to write file");
+    }
+
     pub fn num_rows(&self) -> usize {
         (self.file_length / row::ROW_SIZE as u64) as usize
     }
@@ -49,6 +65,16 @@ impl Pager {
         // i.e. make page an option with pointer to row
         let mut page_buffer = vec![0; table::PAGE_SIZE];
         let page_offset = (page_num * table::PAGE_SIZE) as u64;
+
+        if page_offset >= self.file_length {
+            // make a empty page
+            self.pages.push(table::Page {
+                data: [0; table::PAGE_SIZE],
+            });
+
+            return
+        }
+
         let offset = self.file_descriptor
             .seek(io::SeekFrom::Start(page_offset))
             .expect("Unable to seek to position");

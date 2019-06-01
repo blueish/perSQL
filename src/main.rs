@@ -1,6 +1,7 @@
 use std::env;
 use std::io;
 use std::io::Write;
+use std::process;
 
 mod row;
 mod statement;
@@ -29,7 +30,10 @@ fn main() {
 
         if command.starts_with(".") {
             match util::do_meta_command(&command) {
-                true => println!("meta command success"),
+                true => {
+                    table.db_close();
+                    std::process::exit(0);
+                },
                 false => println!("Unrecognized command {}", command),
             }
             continue;

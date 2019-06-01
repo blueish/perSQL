@@ -32,6 +32,10 @@ impl Table {
         }
     }
 
+    pub fn db_close(&mut self) {
+        self.pager.close();
+    }
+
     pub fn execute_statement<'c>(
         &mut self,
         statement: &'c statement::Statement,
