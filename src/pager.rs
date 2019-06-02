@@ -20,7 +20,8 @@ impl Pager {
             .open(filename)
             .expect("DB file did not exist");
 
-        let file_length = file.metadata()
+        let file_length = file
+            .metadata()
             .expect("could not read db file metadata")
             .len();
 
@@ -39,12 +40,15 @@ impl Pager {
                 .seek(io::SeekFrom::Start(i))
                 .expect("Unable to seek to position");
 
-            self.file_descriptor.write(&page.data);
+            self.file_descriptor
+                .write(&page.data)
+                .expect("Unable to write data into file");
 
             i += table::PAGE_SIZE as u64;
         }
 
-        self.file_descriptor.sync_data()
+        self.file_descriptor
+            .sync_data()
             .expect("unable to write file");
     }
 
@@ -72,10 +76,11 @@ impl Pager {
                 data: [0; table::PAGE_SIZE],
             });
 
-            return
+            return;
         }
 
-        let offset = self.file_descriptor
+        let offset = self
+            .file_descriptor
             .seek(io::SeekFrom::Start(page_offset))
             .expect("Unable to seek to position");
 
@@ -83,7 +88,8 @@ impl Pager {
             panic!("seek position did not match page offset");
         }
 
-        let bytes_read = self.file_descriptor
+        let bytes_read = self
+            .file_descriptor
             .read(page_buffer.as_mut())
             .expect("Unable to read bytes from page");
 
@@ -109,5 +115,4 @@ fn page_vec_to_array(v: Vec<u8>) -> [u8; table::PAGE_SIZE] {
     }
 
     ret
-
 }

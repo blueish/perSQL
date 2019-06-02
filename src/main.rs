@@ -1,13 +1,13 @@
 use std::env;
 use std::io;
 use std::io::Write;
-use std::process;
 
+mod cursor;
+mod pager;
 mod row;
 mod statement;
 mod table;
 mod util;
-mod pager;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -33,7 +33,7 @@ fn main() {
                 true => {
                     table.db_close();
                     std::process::exit(0);
-                },
+                }
                 false => println!("Unrecognized command {}", command),
             }
             continue;
@@ -52,17 +52,39 @@ fn main() {
                 Err(statement::PrepareError::UnrecognizedStatement) => {
                     println!("Unrecognized statement at start of {}", command)
                 }
-                _ => unreachable!(),
+                Ok(_) => unreachable!(),
             }
             continue;
         }
 
         let statement = statement.unwrap();
 
-        match table.execute_statement(&statement) {
-            Err(table::TableError::TableFull) => println!("Table is full."),
-            Ok(_) => {}
-        }
+        match statement.statement_type {
+            statement::StatementType::Insert => match &statement.row_to_insert {
+                None => {
+                    println!("Cannot insert empty row!");
+                    continue;
+                }
+                Some(row) => {
+                    let row = row.to_owned();
+                    let mut cursor = cursor::Cursor::table_end(table);
+                    match cursor.add_row(row) {
+                        Ok(_) => {}
+                        Err(table::TableError::TableFull) => {
+                            println!("Table is full.");
+                            continue;
+                        }
+                    }
+                }
+            },
+            statement::StatementType::Select => {
+                let mut cursor = cursor::Cursor::table_start(table);
+                while !cursor.end_of_table {
+                    println!("{:?}", cursor.cursor_value());
+                    cursor.advance();
+                }
+            }
+        };
 
         println!("Executed");
     }
