@@ -1,18 +1,19 @@
 use crate::row;
 use crate::statement;
+use crate::pager;
 
-const PAGE_SIZE: usize = 4096;
+pub const PAGE_SIZE: usize = 4096;
 const TABLE_MAX_PAGES: usize = 100;
 const ROWS_PER_PAGE: usize = PAGE_SIZE / row::ROW_SIZE;
 pub const TABLE_MAX_ROWS: usize = ROWS_PER_PAGE * TABLE_MAX_PAGES;
 
-struct Page {
-    data: [u8; PAGE_SIZE],
+pub struct Page {
+    pub data: [u8; PAGE_SIZE],
 }
 
 pub struct Table {
     num_rows: usize,
-    pages: Vec<Page>,
+    pager: pager::Pager,
 }
 
 #[derive(Debug)]
@@ -21,11 +22,18 @@ pub enum TableError {
 }
 
 impl Table {
-    pub fn new() -> Table {
+    pub fn db_open(filename: String) -> Table {
+        let pager = pager::Pager::new(filename);
+        let num_rows = pager.num_rows();
+
         Table {
-            num_rows: 0,
-            pages: vec![],
+            num_rows: num_rows,
+            pager: pager,
         }
+    }
+
+    pub fn db_close(&mut self) {
+        self.pager.close();
     }
 
     pub fn execute_statement<'c>(
@@ -57,12 +65,7 @@ impl Table {
         let row_num = self.num_rows;
         let (page_idx, offset) = Table::row_slot(row_num);
 
-        while page_idx >= self.pages.len() {
-            self.pages.push(Page {
-                data: [0; PAGE_SIZE]
-            })
-        }
-        let page = &mut self.pages[page_idx];
+        let mut page = self.pager.get_page(page_idx);
 
         let bytes = row.serialize_row();
 
@@ -76,11 +79,11 @@ impl Table {
         return Ok(self);
     }
 
-    pub fn print_rows(&self) {
+    pub fn print_rows(&mut self) {
         for row_num in 0..self.num_rows {
             let (page_index, offset) = Table::row_slot(row_num);
 
-            let page = &self.pages[page_index];
+            let page = self.pager.get_page(page_index);
 
             let bytes = page.data[offset..offset + row::ROW_SIZE].to_vec();
 
@@ -119,7 +122,7 @@ mod tests {
     #[test]
     fn add_row() {
         let row = row::Row::new(1, String::from(""), String::from(""));
-        let mut table = Table::new();
+        let mut table = Table::db_open(String::from("test.db"));
         assert!(table.num_rows == 0);
 
         assert!(table.insert_row(row).is_ok());

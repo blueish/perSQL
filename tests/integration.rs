@@ -1,8 +1,7 @@
 extern crate rexpect;
 
-use rexpect::spawn;
 use rexpect::errors::*;
-
+use rexpect::spawn;
 
 #[cfg(test)]
 mod integration {
@@ -10,7 +9,7 @@ mod integration {
     use super::*;
 
     fn call_initial_quit() -> Result<()> {
-        let mut p = spawn("./target/debug/persql", Some(200))?;
+        let mut p = spawn("./target/debug/persql tmp_test.db", Some(200))?;
 
         p.send_line(".exit")?;
         p.exp_eof()?;
@@ -23,7 +22,7 @@ mod integration {
     }
 
     fn insert_one_row() -> Result<()> {
-        let mut p = spawn("./target/debug/persql", Some(200))?;
+        let mut p = spawn("./target/debug/persql tmp_3_test.db", Some(200))?;
 
         p.exp_regex("persql>")?;
         p.send_line("insert 1 john example@example.com")?;
@@ -44,7 +43,7 @@ mod integration {
     }
 
     fn full_table_err() -> Result<()> {
-        let mut p = spawn("./target/debug/persql", Some(200))?;
+        let mut p = spawn("./target/debug/persql tmp_2_test.db", Some(200))?;
 
         for i in 0..(1400 - 1) {
             p.exp_regex("persql>")?;

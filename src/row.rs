@@ -107,7 +107,6 @@ fn u32_to_u8(int: u32) -> [u8; 4] {
     let third = ((int & 0x0000ff00) >> 8) as u8;
     let fourth = (int & 0x000000ff) as u8;
 
-
     res[0] = first;
     res[1] = second;
     res[2] = third;
@@ -123,15 +122,12 @@ fn string_from_serialized(bytes: Vec<u8>) -> String {
         if *byte != 0 {
             without_nulls.push(*byte);
         } else {
-            return String::from_utf8(without_nulls)
-                .expect("Corrupted string from serialized row");
+            return String::from_utf8(without_nulls).expect("Corrupted string from serialized row");
         }
     }
 
-    return String::from_utf8(without_nulls)
-        .expect("Corrupted string from serialized row");
+    return String::from_utf8(without_nulls).expect("Corrupted string from serialized row");
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -222,4 +218,3 @@ mod tests {
         assert_eq!("cb", string_from_serialized(bytes));
     }
 }
-
